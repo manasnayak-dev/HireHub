@@ -251,28 +251,103 @@ const getJobs = async (req, res) => {
 };
 
 const getJobById = async (req, res) => {
+  const jobId = req.params.id;
 
-    const jobId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(jobId)) {
-        return res.status(400).json({
-            message: "Invalid job ID"
-        });
-    }
-
-    const job = await Job.findById(jobId).populate(
-        "company",
-        "name description website location logo"
-    );
-
-    if (!job) {
-        return res.status(404).json({
-            message: "Job not found"
-        });
-    }
-
-    return res.status(200).json({
-        job
+  if (!mongoose.Types.ObjectId.isValid(jobId)) {
+    return res.status(400).json({
+      message: "Invalid job ID",
     });
+  }
+
+  const job = await Job.findById(jobId).populate(
+    "company",
+    "name description website location logo",
+  );
+
+  if (!job) {
+    return res.status(404).json({
+      message: "Job not found",
+    });
+  }
+
+  return res.status(200).json({
+    job,
+  });
 };
-module.exports = { createJob, getJobs, getJobById };
+
+const updateJob = async (req, res) => {
+  const jobId = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(jobId)) {
+    return res.status(400).json({
+      message: "Invalid job ID",
+    });
+  }
+
+  const job = await Job.findById(jobId);
+
+  if (!job) {
+    return res.status(404).json({
+      message: "Job not found",
+    });
+  }
+
+  if (job.postedBy.toString() !== req.user.id) {
+    return res.status(403).json({
+      message: "You are not authorized to update this job",
+    });
+  }
+
+  const {
+    title,
+    description,
+    skills,
+    salary,
+    location,
+    jobType,
+    workMode,
+    experience,
+    company,
+    deadline,
+  } = req.body;
+
+  job.title = title ?? job.title;
+  job.description = description ?? job.description;
+  job.skills = skills ?? job.skills;
+  job.salary = salary ?? job.salary;
+  job.location = location ?? job.location;
+  job.jobType = jobType ?? job.jobType;
+  job.workMode = workMode ?? job.workMode;
+  job.experience = experience ?? job.experience;
+  job.company = company ?? job.company;
+  job.deadline = deadline ?? job.deadline;
+
+  if (job.salary.min > job.salary.max) {
+    return res.status(400).json({
+      message: "Maximum salary cannot be less than minimum salary",
+    });
+  }
+
+  // Validate experience
+  if (job.experience.min > job.experience.max) {
+    return res.status(400).json({
+      message: "Maximum experience cannot be less than minimum experience",
+    });
+  }
+
+  // Validate deadline
+  if (new Date(job.deadline) <= new Date()) {
+    return res.status(400).json({
+      message: "Job deadline must be a future date",
+    });
+  }
+
+  await job.save();
+
+  return res.status(200).json({
+    message: "Job updated successfully",
+    job,
+  });
+};
+
+module.exports = { createJob, getJobs, getJobById, updateJob };
