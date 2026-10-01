@@ -350,4 +350,34 @@ const updateJob = async (req, res) => {
   });
 };
 
-module.exports = { createJob, getJobs, getJobById, updateJob };
+const deleteJob = async (req, res) => {
+  const jobId = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(jobId)) {
+    return res.status(400).json({
+      message: "Invalid job ID",
+    });
+  }
+
+  const job = await Job.findById(jobId);
+
+  if (!job) {
+    return res.status(404).json({
+      message: "Job not found",
+    });
+  }
+
+  if (job.postedBy.toString() !== req.user.id) {
+    return res.status(403).json({
+      message: "You are not authorized to delete this job",
+    });
+  }
+
+  await job.deleteOne();
+
+  return res.status(200).json({
+    message: "Job deleted successfully",
+  });
+};
+
+module.exports = { createJob, getJobs, getJobById, updateJob, deleteJob };
