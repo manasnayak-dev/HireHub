@@ -1,5 +1,6 @@
 const Application = require("../models/Application");
 const Job = require("../models/job");
+const CandidateProfile = require("../models/CandidateProfile");
 const mongoose = require("mongoose");
 const applyForJob = async (req, res) => {
   const jobId = req.params.jobId;
@@ -213,10 +214,57 @@ const getApplicationById = async (req, res) => {
   });
 };
 
+const getCandidateProfile = async (req, res) => {
+  const applicationId = req.params.applicationId;
+
+  if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+    return res.status(400).json({
+      message: "Invalid application ID",
+    });
+  }
+
+  const application = await Application.findById(applicationId);
+
+  if (!application) {
+    return res.status(404).json({
+      message: "Application not found",
+    });
+  }
+
+  const job = await Job.findById(application.job);
+
+  if (!job) {
+    return res.status(404).json({
+      message: "Job associated with this application not found",
+    });
+  }
+
+  if (job.postedBy.toString() !== req.user.id) {
+    return res.status(403).json({
+      message: "You are not authorized to view this candidate profile",
+    });
+  }
+
+  const profile = await CandidateProfile.findOne({
+    user: application.applicant,
+  });
+
+  if (!profile) {
+    return res.status(404).json({
+      message: "Candidate profile not found",
+    });
+  }
+
+  return res.status(200).json({
+    profile,
+  });
+};
+
 module.exports = {
   applyForJob /*candidate*/,
   getMyApplications /*candidate*/,
   getJobApplicants /*recruiter*/,
   updateApplicationStatus /*recruiter*/,
   getApplicationById /*candidate*/,
+  getCandidateProfile /*recruiter*/,
 };

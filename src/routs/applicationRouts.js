@@ -6,6 +6,7 @@ const {
   getJobApplicants,
   updateApplicationStatus,
   getApplicationById,
+  getCandidateProfile,
 } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -39,6 +40,13 @@ router.patch(
   authMiddleware,
   authorizeRoles("recruiter"),
   updateApplicationStatus,
+);
+
+router.get(
+  "/:applicationId/candidate-profile",
+  authMiddleware,
+  authorizeRoles("recruiter"),
+  getCandidateProfile,
 );
 
 router.get(
