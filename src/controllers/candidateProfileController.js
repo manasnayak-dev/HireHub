@@ -44,6 +44,24 @@ const createOrUpdateProfile = async (req, res) => {
     });
 };
 
+const getMyProfile = async (req, res) => {
+
+    const profile = await CandidateProfile.findOne({
+        user: req.user.id
+    });
+
+    if (!profile) {
+        return res.status(404).json({
+            message: "Candidate profile not found"
+        });
+    }
+
+    return res.status(200).json({
+        profile
+    });
+};
+
 module.exports = {
-    createOrUpdateProfile
+    createOrUpdateProfile,
+    getMyProfile
 };
