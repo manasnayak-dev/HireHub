@@ -1,7 +1,10 @@
 const express = require("express");
 
 const {
-    applyForJob
+  applyForJob,
+  getMyApplications,
+  getJobApplicants,
+  updateApplicationStatus
 } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -10,10 +13,31 @@ const authorizeRoles = require("../middleware/roleMiddleware");
 const router = express.Router();
 
 router.post(
-    "/:jobId",
+  "/:jobId",
+  authMiddleware,
+  authorizeRoles("candidate"),
+  applyForJob,
+);
+
+router.get(
+  "/my",
+  authMiddleware,
+  authorizeRoles("candidate"),
+  getMyApplications,
+);
+
+router.get(
+  "/job/:jobId",
+  authMiddleware,
+  authorizeRoles("recruiter"),
+  getJobApplicants,
+);
+
+router.patch(
+    "/:applicationId/status",
     authMiddleware,
-    authorizeRoles("candidate"),
-    applyForJob
+    authorizeRoles("recruiter"),
+    updateApplicationStatus
 );
 
 module.exports = router;
