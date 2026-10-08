@@ -178,9 +178,45 @@ const updateApplicationStatus = async (req, res) => {
   });
 };
 
+const getApplicationById = async (req, res) => {
+  const applicationId = req.params.applicationId;
+
+  if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+    return res.status(400).json({
+      message: "Invalid application ID",
+    });
+  }
+
+  const application = await Application.findById(applicationId).populate({
+    path: "job",
+    select: "title description salary location jobType workMode company",
+    populate: {
+      path: "company",
+      select: "name description website location logo",
+    },
+  });
+
+  if (!application) {
+    return res.status(404).json({
+      message: "Application not found",
+    });
+  }
+
+  if (application.applicant.toString() !== req.user.id) {
+    return res.status(403).json({
+      message: "You are not authorized to view this application",
+    });
+  }
+
+  return res.status(200).json({
+    application,
+  });
+};
+
 module.exports = {
-  applyForJob,
-  getMyApplications,
-  getJobApplicants,
-  updateApplicationStatus,
+  applyForJob /*candidate*/,
+  getMyApplications /*candidate*/,
+  getJobApplicants /*recruiter*/,
+  updateApplicationStatus /*recruiter*/,
+  getApplicationById /*candidate*/,
 };
