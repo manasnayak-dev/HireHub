@@ -8,6 +8,7 @@ const authRoutes = require("./routs/authRouts");
 const jobRouts = require("./routs/jobRoutes");
 const companyRouts = require("./routs/companyRoutes");
 const applicationRouts = require("./routs/applicationRouts");
+const candidateProfileRoutes = require("./routs/candidateProfileRouts");
 
 connectDB();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRouts);
 app.use("/api/companies", companyRouts);
 app.use("/api/applications", applicationRouts);
+app.use("/api/candidate-profile", candidateProfileRoutes);
 
 app.get("/about", (req, res) => {
   res.send("This is HireHub....");
