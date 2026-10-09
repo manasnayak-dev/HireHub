@@ -1,7 +1,7 @@
 const CandidateProfile = require("../models/CandidateProfile");
 
 const createOrUpdateProfile = async (req, res) => {
-  const { phone, location, bio, skills } = req.body;
+  const { phone, location, bio, skills, education, experience } = req.body;
 
   const profile = await CandidateProfile.findOne({
     user: req.user.id,
